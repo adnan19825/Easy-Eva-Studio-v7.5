@@ -1,0 +1,29 @@
+
+ķ        load_keys(key_path)? // ? entpackt den ClientKey aus dem Result
+    } else {
+        println!("[*] Kein Schlüssel gefunden. Generiere neues Key-Paar...");
+        let (new_ck, _) = setup_fhe();
+        save_keys(&new_ck, key_path)?;
+        new_ck // Hier wird der nackte ClientKey zurückgegeben
+    };
+
+    let sk = ServerKey::new(&ck);
+
+    // 2. Datenbank-Aktion (Persistent simuliert)
+    println!("[*] Verschlüssele Testdaten...");
+    let encrypt_start = Instant::now();
+    let secret_id = ck.encrypt(7);
+    let secret_val = ck.encrypt(13);
+    let query = ck.encrypt(5);  // Should NOT match, return 0    println!("🔒 Encryption time: {:?}", encrypt_start.elapsed());
+
+    println!("[*] FHE-Operation läuft auf geladenem Schlüssel...");
+    let fhe_start = Instant::now();
+    let result_ct = private_retrieve_optimized(&sk, &query, &secret_id, &secret_val);
+    println!("⚡ FHE operation time: {:?}", fhe_start.elapsed());
+
+    let dec = ck.decrypt(&result_ct);
+    println!("\n=== ERGEBNIS ===");
+    println!("Gefundener Wert: {} (Basis: Echte Key-Datei)", dec);
+
+    Ok(())
+}

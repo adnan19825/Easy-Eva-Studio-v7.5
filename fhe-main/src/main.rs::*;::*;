@@ -1,0 +1,42 @@
+
+use fhe_core::*;
+use std::path::Path;
+use std::error::Error;
+use std::time::Instant;
+
+fn main() -> Result<(), Box<dyn Error>> {
+    println!("=== EASY-EVA v14.1: PRODUKTIONS-ENGINE (ARM64) ===");
+    let key_path = "client_vault.key";
+
+    // 1. Key-Management
+    let ck = if Path::new(key_path).exists() {
+        println!("[*] Lade existierenden Schlüssel aus Datei...");
+        load_keys(key_path)?
+    } else {
+        println!("[*] Kein Schlüssel gefunden. Generiere neues Key-Paar...");
+        let (new_ck, _) = setup_fhe();
+        save_keys(&new_ck, key_path)?;
+        new_ck
+    };
+
+    let sk = ServerKey::new(&ck);
+
+    // 2. Datenbank-Aktion
+    println!("[*] Verschlüssele Testdaten...");
+    let encrypt_start = Instant::now();
+    let secret_id = ck.encrypt(7);
+    let secret_val = ck.encrypt(13);
+    let query = ck.encrypt(5);  // Ändere zu 7 für Match, 5 für No-Match
+    println!("🔒 Encryption time: {:?}", encrypt_start.elapsed());
+
+    println!("[*] FHE-Operation läuft auf geladenem Schlüssel...");
+    let fhe_start = Instant::now();
+    let result_ct = private_retrieve_optimized(&sk, &query, &secret_id, &secret_val);
+    println!("⚡ FHE operation time: {:?}", fhe_start.elapsed());
+
+    let dec = ck.decrypt(&result_ct);
+    println!("\n=== ERGEBNIS ===");
+    println!("Gefundener Wert: {} (Basis: Echte Key-Datei)", dec);
+
+    Ok(())
+}

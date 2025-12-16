@@ -1,0 +1,1 @@
+/data/data/com.termux/files/home/fhe-workspace/target/release/fhe-main: /data/data/com.termux/files/home/fhe-workspace/fhe-core/src/lib.rs /data/data/com.termux/files/home/fhe-workspace/fhe-main/src/main.rs

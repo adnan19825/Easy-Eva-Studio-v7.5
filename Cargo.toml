@@ -1,0 +1,3 @@
+[workspace]
+members = ["fhe-api","fhe-core", "fhe-main"]
+resolver = "2"
